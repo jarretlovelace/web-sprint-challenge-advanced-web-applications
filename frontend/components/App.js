@@ -18,27 +18,84 @@ export default function App() {
 
   // ✨ Research `useNavigate` in React Router v.6
   const navigate = useNavigate()
-  const redirectToLogin = () => { /* ✨ implement */ }
-  const redirectToArticles = () => { /* ✨ implement */ }
+  const redirectToLogin = () => navigate("/");
+  const redirectToArticles = () => navigate("/articles");
 
   const logout = () => {
+    localStorage.removeItem('token');
+    setMessage('Goodbye!');
+    redirectToLogin();
     // ✨ implement
     // If a token is in local storage it should be removed,
     // and a message saying "Goodbye!" should be set in its proper state.
     // In any case, we should redirect the browser back to the login screen,
     // using the helper above.
-  }
+  };
 
-  const login = ({ username, password }) => {
-    // ✨ implement
+  const login = async ({ username, password }) => {
+    setMessage('');
+    setSpinnerOn(true);
+    
+    try {
+      const response = await fetch(loginUrl, {
+        method: 'POST', 
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username, password })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        localStorage.setItem('token', data.token);
+        setMessage(data.message);
+        redirectToArticles();
+            } else {
+              setMessage(data.message);
+            }
+          } catch (error) {
+            setMessage('An error occurred during login.');
+          }
+
+          setSpinnerOn(false);
+        // ✨ implement
     // We should flush the message state, turn on the spinner
     // and launch a request to the proper endpoint.
     // On success, we should set the token to local storage in a 'token' key,
     // put the server success message in its proper state, and redirect
     // to the Articles screen. Don't forget to turn off the spinner!
-  }
+  };
 
-  const getArticles = () => {
+  const getArticles = async () => {
+    setMessage('');
+    setSpinnerOn(true);
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(articlesUrl, {
+        headers: {
+          'Authorization' : `Bearer ${token}`
+        }
+      });
+      
+      const data = await response.json(); 
+
+      if (response.ok) {
+        setArticles(data.articles); 
+        setMessage(data.message);
+      } else {
+        if (response.status === 401) {
+          redirectToLogin();
+        }
+        setMessage(data.message);
+      }
+      } catch (error) {
+        setMessage('An error occurred while fetching articles.');
+      }
+
+      setSpinnerOn(false);
+    };
     // ✨ implement
     // We should flush the message state, turn on the spinner
     // and launch an authenticated request to the proper endpoint.
@@ -47,29 +104,108 @@ export default function App() {
     // If something goes wrong, check the status of the response:
     // if it's a 401 the token might have gone bad, and we should redirect to login.
     // Don't forget to turn off the spinner!
-  }
+  
 
-  const postArticle = article => {
+  const postArticle =  async (article) => {
+    setMessage('');
+    setSpinnerOn(true);
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(articlesUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }, 
+        body: JSON.stringify(article)
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage(data.message);
+        getArticles();
+      } else {
+        setMessage(data.message);
+      }
+    } catch (error) {
+      setMessage('An error occurred while posting the article.');
+    }
+
+    setSpinnerOn(false);
     // ✨ implement
     // The flow is very similar to the `getArticles` function.
     // You'll know what to do! Use log statements or breakpoints
     // to inspect the response from the server.
-  }
+  };
 
-  const updateArticle = ({ article_id, article }) => {
+  const updateArticle = async ({ article_id, article }) => {
+    setMessage('')
+    setSpinnerOn(true)
+
+    try { 
+      const token = localStorage.getItem('token')
+      const response = await fetch(`${articlesUrl}/${article_id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(article)
+      })
+    
+      const data = await response.json()
+
+      if (response.ok) {
+        setMessage(data.message)
+        getArticles()
+      } else {
+        setMessage(data.message)
+      }
+    } catch (error) {
+      setMessage('An error occurred while updating the article.')
+    }
+
+      setSpinnerOn(false)
+      }
+
+      const deleteArticle = async (article_id) => {
+        setMessage('')
+        setSpinnerOn(true)
+
+        try {
+          const token = localStorage.getItem('token')
+          const response = await fetch(`${articlesUrl}/${article_id}`, {
+            method: 'DELETE',
+            headers: {
+              'Aurthorization': `Bearer ${token}`
+            }
+          })
+
+          const data = await response.json()
+
+          if (response.ok) {
+            setMessage(data.message)
+            getArticles()
+          } else {
+            setMessage(data.message)
+          }
+        } catch (error) {
+          setMessage('An error occurred while deleting the article.')
+        }
+      
+          setSpinnerOn(false)
     // ✨ implement
     // You got this!
   }
 
-  const deleteArticle = article_id => {
-    // ✨ implement
-  }
 
   return (
     // ✨ fix the JSX: `Spinner`, `Message`, `LoginForm`, `ArticleForm` and `Articles` expect props ❗
     <>
-      <Spinner />
-      <Message />
+      <Spinner on={spinnerOn} />
+      <Message message={message} />
       <button id="logout" onClick={logout}>Logout from app</button>
       <div id="wrapper" style={{ opacity: spinnerOn ? "0.25" : "1" }}> {/* <-- do not change this line */}
         <h1>Advanced Web Applications</h1>
@@ -78,16 +214,16 @@ export default function App() {
           <NavLink id="articlesScreen" to="/articles">Articles</NavLink>
         </nav>
         <Routes>
-          <Route path="/" element={<LoginForm />} />
+          <Route path="/" element={<LoginForm login={login} />} />
           <Route path="articles" element={
             <>
-              <ArticleForm />
-              <Articles />
+              <ArticleForm postArticle ={postArticle} />
+              <Articles articles={articles} getArticles={getArticles} deleteArticle={deleteArticle} updateArticle={updateArticle} />
             </>
           } />
         </Routes>
         <footer>Bloom Institute of Technology 2024</footer>
       </div>
     </>
-  )
+  );
 }
