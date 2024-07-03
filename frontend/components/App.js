@@ -198,7 +198,7 @@ export default function App() {
           setSpinnerOn(false)
     // ✨ implement
     // You got this!
-  }
+  };
 
 
   return (
@@ -217,8 +217,19 @@ export default function App() {
           <Route path="/" element={<LoginForm login={login} />} />
           <Route path="articles" element={
             <>
-              <ArticleForm postArticle ={postArticle} />
-              <Articles articles={articles} getArticles={getArticles} deleteArticle={deleteArticle} updateArticle={updateArticle} />
+              <ArticleForm 
+              postArticle ={postArticle}
+              updateArticle={updateArticle}
+              setCurrentArticleId={currentArticleId}
+              setCurrentArticleId={setCurrentArticleId}
+              articles={articles}
+              />
+              <Articles
+              articles={articles}
+              getArticles={getArticles} 
+              deleteArticle={deleteArticle} 
+              setCurrentArticleId={setCurrentArticleId}
+              updateArticle={updateArticle} />
             </>
           } />
         </Routes>

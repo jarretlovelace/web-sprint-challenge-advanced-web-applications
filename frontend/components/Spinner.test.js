@@ -10,12 +10,12 @@ test('sanity', () => {
 
 describe('Spinner component', () => {
   test('renders corrent when spinner is on', () => {
-const { container } = render(<Spinner on={true} />)
-expect(container.querySelector('.spinner')).toBeInTheDocument()
-  })
+const { container } = render(<Spinner on={true} />);
+expect(container.querySelector('.spinner')).toBeInTheDocument();
+  });
 
   test('does not render when spinner is off', () => {
     const { container } = render(<Spinner on={false} />)
-    expect(container.querySelector('.spinner')).not.toBeInTheDocument()
-  })
-})
+    expect(container.querySelector('.spinner')).not.toBeInTheDocument();
+  });
+});

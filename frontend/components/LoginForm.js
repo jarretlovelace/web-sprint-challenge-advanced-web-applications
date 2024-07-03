@@ -46,7 +46,7 @@ export default function LoginForm(props) {
       />
       <button disabled={isDisabled()} id="submitCredentials">Submit credentials</button>
     </form>
-  )
+  );
 }
 
 // 🔥 No touchy: LoginForm expects the following props exactly:
