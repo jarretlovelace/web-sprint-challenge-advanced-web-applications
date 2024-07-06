@@ -1,31 +1,32 @@
-import React, { useState } from 'react'
-import PT from 'prop-types'
+// frontend/components/LoginForm.js
+import React, { useState } from 'react';
+import PT from 'prop-types';
 
 const initialFormValues = {
   username: '',
   password: '',
-}
+};
 
 export default function LoginForm(props) {
-  const [values, setValues] = useState(initialFormValues)
+  const [values, setValues] = useState(initialFormValues);
   const { login } = props;
 
   const onChange = evt => {
-    const { id, value } = evt.target
-    setValues({ ...values, [id]: value })
-  }
+    const { id, value } = evt.target;
+    setValues({ ...values, [id]: value });
+  };
 
   const onSubmit = evt => {
     evt.preventDefault();
     login(values);
     setValues(initialFormValues);
-  }
+  };
 
   const isDisabled = () => {
     const trimmedUsername = values.username.trim();
     const trimmedPassword = values.password.trim();
     return trimmedUsername.length < 3 || trimmedPassword.length < 8;
-  }
+  };
 
   return (
     <form id="loginForm" onSubmit={onSubmit}>
@@ -39,6 +40,7 @@ export default function LoginForm(props) {
       />
       <input
         maxLength={20}
+        type="password"
         value={values.password}
         onChange={onChange}
         placeholder="Enter password"
@@ -49,7 +51,6 @@ export default function LoginForm(props) {
   );
 }
 
-// 🔥 No touchy: LoginForm expects the following props exactly:
 LoginForm.propTypes = {
   login: PT.func.isRequired,
-}
+};
