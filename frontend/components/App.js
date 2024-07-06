@@ -12,7 +12,7 @@ const loginUrl = 'http://localhost:9000/api/login';
 export default function App() {
   const [message, setMessage] = useState('');
   const [articles, setArticles] = useState([]);
-  const [currentArticleId, setCurrentArticleId] = useState();
+  const [currentArticleId, setCurrentArticleId] = useState(null);
   const [spinnerOn, setSpinnerOn] = useState(false);
 
   const navigate = useNavigate();
@@ -41,14 +41,17 @@ export default function App() {
       const data = await response.json();
 
       if (response.ok) {
+        console.log('Login successful:', data);
         localStorage.setItem('token', data.token);
-        setMessage(data.message);
+        setMessage('Login successful');
         await getArticles();
         redirectToArticles();
       } else {
+        console.log('Login failed:', data);
         setMessage(data.message);
       }
     } catch (error) {
+      console.log('Login error:', error);
       setMessage('An error occurred during login.');
     }
 
@@ -61,24 +64,33 @@ export default function App() {
 
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        setMessage('No token found');
+        redirectToLogin();
+        return;
+      }
+
       const response = await fetch(articlesUrl, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
-      
+
       const data = await response.json(); 
 
       if (response.ok) {
-        setArticles(data.articles);
+        console.log('Articles fetched:', data);
+        setArticles(data);
         setMessage('Articles fetched successfully');
       } else {
+        console.log('Failed to fetch articles:', data);
         if (response.status === 401) {
           redirectToLogin();
         }
         setMessage(data.message);
       }
     } catch (error) {
+      console.log('Error fetching articles:', error);
       setMessage('An error occurred while fetching articles.');
     }
 
