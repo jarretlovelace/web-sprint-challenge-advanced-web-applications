@@ -7,14 +7,15 @@ test('sanity', () => {
 });
 
 test('renders spinner when `on` is true', () => {
-  const { getByTestId } = render(<Spinner on={true} />);
-  const spinnerElement = getByTestId('spinner');
+  const { getById } = render(<Spinner on={true} />);
+  const spinnerElement = getById('spinner');
   expect(spinnerElement).toBeInTheDocument();
 });
 
+
 test('does not render spinner when `on` is false', () => {
-  const { queryByTestId } = render(<Spinner on={false} />);
-  const spinnerElement = queryByTestId('spinner');
+  const { queryById } = render(<Spinner on={false} />);
+  const spinnerElement = queryById('spinner');
   expect(spinnerElement).not.toBeInTheDocument();
 });
 

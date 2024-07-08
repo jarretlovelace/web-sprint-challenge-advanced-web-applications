@@ -6,28 +6,22 @@ const initialFormValues = {
   password: '',
 }
 export default function LoginForm({ login }) {
-  const [values, setValues] = useState(initialFormValues)
-  // ✨ where are my props? Destructure them here
+  const [values, setValues] = useState(initialFormValues)  // ✨ where are my props? Destructure them here
 
   const onChange = evt => {
     const { id, value } = evt.target
     setValues({ ...values, [id]: value })
   }
 
-  const onSubmit = evt => {
+  const onSubmit = evt => { // ✨ implement
     evt.preventDefault();
     login(values);
-    // ✨ implement
   };
 
-  const isDisabled = () => {
-    // ✨ implement
-    const trimmedUsername = values.username.trim();
-    // Trimmed username must be >= 3, and
-    const trimmedPassword = values.password.trim();
-    // trimmed password must be >= 8 for
-    return trimmedUsername.length < 3 || trimmedPassword.length < 8;
-    // the button to become enabled
+  const isDisabled = () => { // ✨ implement
+    const trimmedUsername = values.username.trim();    // Trimmed username must be >= 3, and
+    const trimmedPassword = values.password.trim();    // trimmed password must be >= 8 for
+    return trimmedUsername.length < 3 || trimmedPassword.length < 8;   // the button to become enabled
   };
 
   return (
@@ -44,6 +38,7 @@ export default function LoginForm({ login }) {
         maxLength={20}
         value={values.password}
         onChange={onChange}
+        type="password"
         placeholder="Enter password"
         id="password"
       />
