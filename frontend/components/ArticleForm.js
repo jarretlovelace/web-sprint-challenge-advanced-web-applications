@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from 'react'
-import PT from 'prop-types'
+import React, { useEffect, useState } from 'react';
+import PT from 'prop-types';
 
-const initialFormValues = { title: '', text: '', topic: '' }
+const initialFormValues = { title: '', text: '', topic: '' };
 
 export default function ArticleForm({ postArticle, updateArticle, setCurrentArticleId, currentArticle }) {
-  const [formValues, setFormValues] = useState(initialFormValues);  // ✨ where are my props? Destructure them here
+  const [formValues, setFormValues] = useState(initialFormValues);
 
-  useEffect(() => {    // ✨ implement
-    if (currentArticle) {    // Every time the `currentArticle` prop changes, we should check it for truthiness:
+  useEffect(() => {
+    if (currentArticle) {
       setFormValues(currentArticle);
     } else {
       setFormValues(initialFormValues);
@@ -22,29 +22,27 @@ export default function ArticleForm({ postArticle, updateArticle, setCurrentArti
     });
   };
 
-
   const handleSubmit = (e) => {
     e.preventDefault();
     if (currentArticle) {
-      updateArticle({ article_id: currentArticle.article_id, article: formValues });
+      updateArticle({ ...formValues, article_id: currentArticle.article_id });
     } else {
       postArticle(formValues);
     }
     setFormValues(initialFormValues);
     setCurrentArticleId(null);
   };
-  
+
   const isDisabled = () => {
     return !(formValues.title && formValues.text && formValues.topic);
   };
+
   const onCancel = () => {
     setFormValues(initialFormValues);
     setCurrentArticleId(null);
   };
 
   return (
-    // ✨ fix the JSX: make the heading display either "Edit" or "Create"
-    // and replace Function.prototype with the correct function
     <form id="form" onSubmit={handleSubmit}>
       <h2>{currentArticle ? 'Edit' : 'Create'} Article</h2>
       <label htmlFor="title">Title</label>
@@ -77,13 +75,11 @@ export default function ArticleForm({ postArticle, updateArticle, setCurrentArti
   );
 }
 
-
-// 🔥 No touchy: ArticleForm expects the following props exactly:
 ArticleForm.propTypes = {
   postArticle: PT.func.isRequired,
   updateArticle: PT.func.isRequired,
   setCurrentArticleId: PT.func.isRequired,
-  currentArticle: PT.shape({ // can be null or undefined, meaning "create" mode (as opposed to "update")
+  currentArticle: PT.shape({
     article_id: PT.number.isRequired,
     title: PT.string.isRequired,
     text: PT.string.isRequired,

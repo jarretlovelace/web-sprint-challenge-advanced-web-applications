@@ -1,32 +1,43 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import PT from 'prop-types';
 import ArticleForm from './ArticleForm';
 
-export default function Articles({ 
-  articles, 
-  getArticles, 
-  deleteArticle, 
-  setCurrentArticleId, 
+const Articles = ({
+  articles,
+  getArticles,
+  deleteArticle,
+  setCurrentArticleId,
   postArticle,
   updateArticle,
-currentArticle,
- }) {
-  const token = localStorage.getItem('token'); // Destructure token directly from localStorage
- 
-  useEffect(() => {
-    if (token) {
-      getArticles(); // Fetch articles when token exists on initial render
-    }
-  }, [token, getArticles]);
+  currentArticle,
+}) => {
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const token = localStorage.getItem('token');
 
-  // Conditional rendering if no token exists
-  if (!token) {
-    return <Navigate to="/" />; // Redirect to login screen if token doesn't exist
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    localStorage.removeItem('token');
+  };
+
+  useEffect(() => {
+    if (token && isLoggedIn) {
+      getArticles();
+    }
+  }, [token, isLoggedIn, getArticles]);
+
+  if (!token || !isLoggedIn) {
+    return (
+      <div>
+        <h1>Goodbye!</h1>
+        <Navigate to="/" replace />
+      </div>
+    );
   }
 
   return (
-    <div className="articles">
+    <div className="articles-container">
+      <button onClick={handleLogout}>Logout</button>
       <h2>Create Article</h2>
       <ArticleForm
         postArticle={postArticle}
@@ -52,7 +63,7 @@ currentArticle,
       )}
     </div>
   );
-}
+};
 
 Articles.propTypes = {
   articles: PT.arrayOf(
@@ -70,3 +81,5 @@ Articles.propTypes = {
   updateArticle: PT.func.isRequired,
   currentArticle: PT.object,
 };
+
+export default Articles;
