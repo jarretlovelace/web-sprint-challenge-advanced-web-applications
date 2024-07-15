@@ -1,54 +1,72 @@
-import React, { useEffect } from 'react'
-import { Navigate } from 'react-router-dom'
-import PT from 'prop-types'
+import React, { useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
+import PT from 'prop-types';
+import ArticleForm from './ArticleForm';
 
-export default function Articles({ articles, getArticles, deleteArticle, setCurrentArticleId }) {
-  const token = localStorage.getItem('token');  // ✨ where are my props? Destructure them here
-  
+export default function Articles({ 
+  articles, 
+  getArticles, 
+  deleteArticle, 
+  setCurrentArticleId, 
+  postArticle,
+  updateArticle,
+currentArticle,
+ }) {
+  const token = localStorage.getItem('token'); // Destructure token directly from localStorage
+ 
   useEffect(() => {
     if (token) {
-      getArticles();  // ✨ grab the articles here, on first render only
+      getArticles(); // Fetch articles when token exists on initial render
     }
   }, [token, getArticles]);
 
-if (!token) {  // ✨ implement conditional logic: if no token exists
-  return <Navigate to="/" />;  // we should render a Navigate to login screen (React Router v.6)
-}
+  // Conditional rendering if no token exists
+  if (!token) {
+    return <Navigate to="/" />; // Redirect to login screen if token doesn't exist
+  }
 
   return (
-    // ✨ fix the JSX: replace `Function.prototype` with actual functions
-    // and use the articles prop to generate articles
     <div className="articles">
+      <h2>Create Article</h2>
+      <ArticleForm
+        postArticle={postArticle}
+        updateArticle={updateArticle}
+        setCurrentArticleId={setCurrentArticleId}
+        currentArticle={currentArticle}
+      />
       <h2>Articles</h2>
-       {articles.length === 0
-          ? 'No articles yet'
-          : articles.map(art => (
-              <div className="article" key={art.article_id}>
-                <div>
-                  <h3>{art.title}</h3>
-                  <p>{art.text}</p>
-                  <p>Topic: {art.topic}</p>
-                </div>
-                <div>
-                  <button onClick={() => setCurrentArticleId(art.article_id)}>Edit</button>
-                 <button onClick={() => deleteArticle(art.article_id)}>Delete</button>
-                </div>
-              </div>
-            ))}
+      {Array.isArray(articles) && articles.length === 0 ? (
+        <div>No Articles Available</div>
+      ) : (
+        Array.isArray(articles) && articles.map(article => (
+          <div key={article.article_id} className="article">
+            <h3>{article.title}</h3>
+            <p>{article.text}</p>
+            <p>Topic: {article.topic}</p>
+            <div>
+              <button onClick={() => setCurrentArticleId(article.article_id)}>Edit</button>
+              <button onClick={() => deleteArticle(article.article_id)}>Delete</button>
+            </div>
+          </div>
+        ))
+      )}
     </div>
   );
 }
 
-// 🔥 No touchy: Articles expects the following props exactly:
 Articles.propTypes = {
-  articles: PT.arrayOf(PT.shape({ // the array can be empty
-    article_id: PT.number.isRequired,
-    title: PT.string.isRequired,
-    text: PT.string.isRequired,
-    topic: PT.string.isRequired,
-  })).isRequired,
+  articles: PT.arrayOf(
+    PT.shape({
+      article_id: PT.number.isRequired,
+      title: PT.string.isRequired,
+      text: PT.string.isRequired,
+      topic: PT.string.isRequired,
+    })
+  ).isRequired,
   getArticles: PT.func.isRequired,
   deleteArticle: PT.func.isRequired,
   setCurrentArticleId: PT.func.isRequired,
-  currentArticleId: PT.number, // can be undefined or null
-}
+  postArticle: PT.func.isRequired,
+  updateArticle: PT.func.isRequired,
+  currentArticle: PT.object,
+};

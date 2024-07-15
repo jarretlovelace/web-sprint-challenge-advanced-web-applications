@@ -4,65 +4,66 @@ import PT from 'prop-types'
 const initialFormValues = { title: '', text: '', topic: '' }
 
 export default function ArticleForm({ postArticle, updateArticle, setCurrentArticleId, currentArticle }) {
-  const [values, setValues] = useState(initialFormValues);  // ✨ where are my props? Destructure them here
+  const [formValues, setFormValues] = useState(initialFormValues);  // ✨ where are my props? Destructure them here
 
-useEffect(() => {    // ✨ implement
+  useEffect(() => {    // ✨ implement
     if (currentArticle) {    // Every time the `currentArticle` prop changes, we should check it for truthiness:
-    setValues({
-      title: currentArticle.title,
-      text: currentArticle.text,
-      topic: currentArticle.topic,
-    });// if it's truthy, we should set its title, text and topic into the corresponding
-  } else {
-    setValues(initialFormValues);  // values of the form. If it's not, we should reset the form back to initial values.
-  }
-}, [currentArticle]);
-
-  const onChange = evt => {
-    const { id, value } = evt.target
-    setValues({ ...values, [id]: value });
-  };
-
-  const onSubmit = evt => { // ✨ implement
-    evt.preventDefault()
-    if (currentArticle) {
-      updateArticle({ article_id: currentArticle.article_id, article: values });
+      setFormValues(currentArticle);
     } else {
-      postArticle(values);  // We must submit a new post or update an existing one,
-    }    // depending on the truthyness of the `currentArticle` prop.
-    setValues(initialFormValues);
+      setFormValues(initialFormValues);
+    }
+  }, [currentArticle]);
+
+  const handleChange = (e) => {
+    const { id, value } = e.target;
+    setFormValues({
+      ...formValues,
+      [id]: value,
+    });
+  };
+
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (currentArticle) {
+      updateArticle({ article_id: currentArticle.article_id, article: formValues });
+    } else {
+      postArticle(formValues);
+    }
+    setFormValues(initialFormValues);
     setCurrentArticleId(null);
   };
-
-  const isDisabled = () => {    // ✨ implement
-    return !(values.title && values.text && values.topic);    // Make sure the inputs have some values
+  
+  const isDisabled = () => {
+    return !(formValues.title && formValues.text && formValues.topic);
   };
-
   const onCancel = () => {
-    setValues(initialFormValues);
+    setFormValues(initialFormValues);
     setCurrentArticleId(null);
-  }
+  };
 
   return (
     // ✨ fix the JSX: make the heading display either "Edit" or "Create"
     // and replace Function.prototype with the correct function
-    <form id="form" onSubmit={onSubmit}>
+    <form id="form" onSubmit={handleSubmit}>
       <h2>{currentArticle ? 'Edit' : 'Create'} Article</h2>
+      <label htmlFor="title">Title</label>
       <input
         maxLength={50}
-        onChange={onChange}
-        value={values.title}
+        onChange={handleChange}
+        value={formValues.title}
         placeholder="Enter title"
         id="title"
       />
+      <label htmlFor="text">Enter text</label>
       <textarea
         maxLength={200}
-        onChange={onChange}
-        value={values.text}
+        onChange={handleChange}
+        value={formValues.text}
         placeholder="Enter text"
         id="text"
       />
-      <select onChange={onChange} id="topic" value={values.topic}>
+      <select onChange={handleChange} id="topic" value={formValues.topic}>
         <option value="">-- Select topic --</option>
         <option value="JavaScript">JavaScript</option>
         <option value="React">React</option>
@@ -70,11 +71,12 @@ useEffect(() => {    // ✨ implement
       </select>
       <div className="button-group">
         <button disabled={isDisabled()} id="submitArticle">Submit</button>
-        <button type="button" onClick={onCancel}>Cancel edit</button>
+        {currentArticle && <button type="button" onClick={onCancel}>Cancel edit</button>}
       </div>
     </form>
   );
 }
+
 
 // 🔥 No touchy: ArticleForm expects the following props exactly:
 ArticleForm.propTypes = {

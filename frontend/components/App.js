@@ -4,7 +4,6 @@ import axios from 'axios';
 import Articles from './Articles';
 import LoginForm from './LoginForm';
 import Message from './Message';
-import ArticleForm from './ArticleForm';
 import Spinner from './Spinner';
 
 const articlesUrl = 'http://localhost:9000/api/articles';
@@ -18,6 +17,7 @@ export default function App() { // ✨ MVP can be achieved with these states
 
   const navigate = useNavigate();
   // ✨ Research `useNavigate` in React Router v.6
+
   const redirectToLogin = () => {
     localStorage.removeItem('token');
     setMessage('Goodbye!');
@@ -34,7 +34,7 @@ export default function App() { // ✨ MVP can be achieved with these states
    setArticles([]);
    setCurrentArticleId(null);
    navigate('/');
-    redirectToLogin();   // In any case, we should redirect the browser back to the login screen,
+      // In any case, we should redirect the browser back to the login screen,
     // using the helper above.
   };
 
@@ -43,14 +43,14 @@ export default function App() { // ✨ MVP can be achieved with these states
     setSpinnerOn(true); // turn on the spinner
     axios.post(loginUrl, credentials)// and launch a request to the proper endpoint.
       .then(res => {
-        console.log('Login Response:', res); // Log statement
+        console.log('Login successful:', res.data);
         localStorage.setItem('token', res.data.token); // On success, we should set the token to local storage in a 'token' key,
         setMessage(res.data.message);// put the server success message in its proper state, 
         redirectToArticles();  // and redirect to the Articles screen.
       })
       .catch(err => {
-        console.log('Login Error:', err.response); // Log statement
-        setMessage(err.response.data.message);
+        console.error('Login error:', err.response ? err.response.data : err);
+        setMessage(err.response ? err.response.data.message : 'Login failed');
       })
       .finally(() => {
         setSpinnerOn(false); // Don't forget to turn off the spinner! 
@@ -63,16 +63,15 @@ export default function App() { // ✨ MVP can be achieved with these states
     const token = localStorage.getItem('token');  // and launch a request to the proper endpoint.
     axios.get(articlesUrl, { headers: { Authorization: token } })
       .then(res => {
-        console.log('Get Articles Response:', res); // Log statement
-        setArticles(res.data.articles);// On success, we should set the articles in their proper state and
-        setMessage(res.data.message);// put the server success message in its proper state.
+        setArticles(res.data);// On success, we should set the articles in their proper state and
+        setMessage('Articles fetched successfully');// put the server success message in its proper state.
       })
       .catch(err => {
-        console.log('Get Articles Error:', err.response); // Log statement
-        if (err.response.status === 401) {  // If something goes wrong, check the status of the response:
+        console.error('Get articles error:', err.response ? err.response.data : err);
+        if (err.response && err.response.status === 401) {  // If something goes wrong, check the status of the response:
           redirectToLogin();
         } else {
-          setMessage(err.response.data.message);
+          setMessage(err.response ? err.response.data.message : 'Failed to fetch articles');
         }
       })
       .finally(() => {
@@ -80,19 +79,19 @@ export default function App() { // ✨ MVP can be achieved with these states
       });
   };
 
+ 
   const postArticle = (article) => {// ✨ implement
     setMessage('');// We should flush the message state,
     setSpinnerOn(true); // turn on the spinner
     const token = localStorage.getItem('token'); // and launch a request to the proper endpoint.
     axios.post(articlesUrl, article, { headers: { Authorization: token } })
       .then(res => {
-        console.log('Post Article Response:', res); // Log statement
-        setArticles([...articles, res.data.article]); // On success, we should set the articles in their proper state and
-        setMessage(res.data.message);// put the server success message in its proper state.
+        setArticles([...articles, res.data]); // On success, we should set the articles in their proper state and
+        setMessage('Article posted successfully');// put the server success message in its proper state.
       })
       .catch(err => {
-        console.log('Post Article Error:', err.response); // Log statement
-        setMessage(err.response.data.message); // If something goes wrong, check the status of the response:
+        console.error('Post article error:', err.response ? err.response.data : err);
+        setMessage(err.response ? err.response.data.message : 'Failed to post article'); // If something goes wrong, check the status of the response:
       })
       .finally(() => {
         setSpinnerOn(false); // Don't forget to turn off the spinner! 
@@ -103,15 +102,14 @@ export default function App() { // ✨ MVP can be achieved with these states
     setMessage(''); // We should flush the message state,
     setSpinnerOn(true);// turn on the spinner
     const token = localStorage.getItem('token');// and launch a request to the proper endpoint.
-    axios.put(`${articlesUrl}/${articleData.article_id}`, articleData.article, { headers: { Authorization: token } })
+    axios.put(`${articlesUrl}/${articleData.article_id}`, articleData, { headers: { Authorization: token } })
       .then(res => {
-        console.log('Update Article Response:', res); // Log statement
-        setArticles(articles.map(article => article.article_id === res.data.article.article_id ? res.data.article : article));
-        setMessage(res.data.message);
+        setArticles(articles.map(article => article.article_id === articleData.article_id ? res.data : article));
+        setMessage('Article updated successfully');
       })
       .catch(err => {
-        console.log('Update Article Error:', err.response); // Log statement
-        setMessage(err.response.data.message);
+        console.error('Update article error', err.response ? err.response.data : err);
+        setMessage(err.response ? err.response.data.message : 'Failed to update article');
       })
       .finally(() => {
         setSpinnerOn(false);// Don't forget to turn off the spinner! 
@@ -124,13 +122,12 @@ export default function App() { // ✨ MVP can be achieved with these states
     const token = localStorage.getItem('token');
     axios.delete(`${articlesUrl}/${article_id}`, { headers: { Authorization: token } })
       .then(res => {
-        console.log('Delete Article Response:', res); // Log statement
         setArticles(articles.filter(article => article.article_id !== article_id));
-        setMessage(res.data.message);
+        setMessage('Article deleted successfully');
       })
       .catch(err => {
-        console.log('Delete Article Error:', err.response); // Log statement
-        setMessage(err.response.data.message);
+        console.error('Delete article error:', err.response ? err.response.data : err);
+        setMessage(err.response ? err.response.data.message : 'Failed to delete article');
       })
       .finally(() => {
         setSpinnerOn(false);
@@ -138,37 +135,32 @@ export default function App() { // ✨ MVP can be achieved with these states
   };
 
   useEffect(() => {
-    if (currentArticleId) {
-      const currentArticle = articles.find(article => article.article_id === currentArticleId);
-      setCurrentArticleId(currentArticle);
+    if (localStorage.getItem('token')) {
+      getArticles();
     }
-  }, [currentArticleId, articles]);
+    }, []);
 
-  return (
-    <div>
-      {spinnerOn && <Spinner />}
-      <Message message={message} />
-      <nav>
-        <NavLink id="loginScreen" to="/">Login</NavLink>
-        <NavLink id="articlesScreen" to="/articles">Articles</NavLink>
-        <button onClick={logout}>Logout</button>
-      </nav>
-      <Routes>
-        <Route path="/" element={<LoginForm login={login} />} />
-        <Route path="/articles" element={<Articles
-          articles={articles}
-          getArticles={getArticles}
-          deleteArticle={deleteArticle}
-          setCurrentArticleId={setCurrentArticleId}
-          currentArticleId={currentArticleId}
-        />} />
-        <Route path="/articles/new" element={<ArticleForm
-          postArticle={postArticle}
-          updateArticle={updateArticle}
-          setCurrentArticleId={setCurrentArticleId}
-          currentArticle={articles.find(article => article.article_id === currentArticleId)}
-        />} />
-      </Routes>
-    </div>
-  );
-}
+    return (
+      <div>
+        {spinnerOn && <Spinner />}
+        <Message message={message} />
+        <nav>
+          <NavLink id="loginScreen" to="/">Login</NavLink>
+          <NavLink id="articlesScreen" to="/articles">Articles</NavLink>
+          <button onClick={logout}>Logout</button>
+        </nav>
+        <Routes>
+          <Route path="/" element={<LoginForm login={login} />} />
+          <Route path="/articles" element={<Articles
+            articles={articles}
+            getArticles={getArticles}
+            deleteArticle={deleteArticle}
+            setCurrentArticleId={setCurrentArticleId}
+            postArticle={postArticle}
+            updateArticle={updateArticle}
+            currentArticle={articles.find(article => article.article_id === currentArticleId) || null}
+          />} />
+        </Routes>
+      </div>
+    );
+  }
